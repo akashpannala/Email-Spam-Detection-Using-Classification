@@ -1,23 +1,30 @@
 import streamlit as st
 import pickle
 import nltk
+import pandas as pd
+import numpy as np
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 import string
-import numpy as np
 
-# Download required NLTK data
-try:
-    nltk.data.find('tokenizers/punkt_tab')
-except LookupError:
-    nltk.download('punkt_tab')
+# Download NLTK data
+nltk.download('punkt')
+nltk.download('stopwords')
 
-try:
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords')
+# Set page config
+st.set_page_config(
+    page_title="Spam Email Classifier",
+    page_icon="📧",
+    layout="centered"
+)
 
-# Load the saved model and preprocessing objects
+st.title("📧 Spam Email Classifier")
+st.markdown("""
+This app predicts whether an email/message is **Spam** or **Ham** (not spam) 
+using a trained Machine Learning model.
+""")
+
+# Load models
 @st.cache_resource
 def load_models():
     try:
@@ -59,25 +66,19 @@ def predict_spam(text, model, tfidf, scaler):
     
     return prediction, probability
 
-# Streamlit app
+# Main app
 def main():
-    st.set_page_config(
-        page_title="Spam Email Classifier",
-        page_icon="📧",
-        layout="centered"
-    )
-    
-    st.title("📧 Spam Email Classifier")
-    st.markdown("""
-    This app predicts whether an email/message is **Spam** or **Ham** (not spam) 
-    using a trained Logistic Regression model.
-    """)
-    
     # Load models
     model, tfidf, scaler = load_models()
     
-    if model is None or tfidf is None or scaler is None:
-        st.error("Failed to load the model. Please make sure the model files are available.")
+    if model is None:
+        st.error("❌ Model files not found. Please make sure all .pkl files are uploaded.")
+        st.info("""
+        **Required files:**
+        - spam_classifier_model.pkl
+        - tfidf_vectorizer.pkl  
+        - standard_scaler.pkl
+        """)
         return
     
     # Input section
@@ -108,12 +109,11 @@ def main():
                     st.metric("Ham Probability", f"{probability[0]:.2%}")
             
             with col2:
-                # Probability gauge
                 spam_prob = probability[1]
                 st.progress(int(spam_prob * 100))
                 st.caption(f"Spam confidence: {spam_prob:.2%}")
             
-            # Additional info
+            # Detailed probabilities
             with st.expander("Detailed Probabilities"):
                 st.write(f"**Ham (Not Spam)**: {probability[0]:.4f} ({probability[0]:.2%})")
                 st.write(f"**Spam**: {probability[1]:.4f} ({probability[1]:.2%})")
@@ -134,13 +134,6 @@ def main():
         Hi John, just checking in about our meeting tomorrow at 2 PM. 
         Please let me know if you need to reschedule. Best, Sarah
         """)
-    
-    # Footer
-    st.markdown("---")
-    st.markdown(
-        "**Note**: This model was trained on email data and may not be perfect. "
-        "Always use your judgment when classifying important messages."
-    )
 
 if __name__ == "__main__":
     main()
