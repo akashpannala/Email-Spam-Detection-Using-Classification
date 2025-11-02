@@ -2,7 +2,7 @@
 A machine learning web app that detects spam emails using Logistic Regression.
 
 🚀 Live Demo
-https://static.streamlit.io/badges/streamlit_badge_black_white.svg
+https://akashpannala-email-spam-detection.streamlit.app/
 
 📁 Files Needed
 app.py - Main Streamlit application
